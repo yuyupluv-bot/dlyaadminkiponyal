@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Акции и промокоды{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-6 mb-4">
+    <h3 class="mb-3"><i class="bi bi-gift"></i> Акции</h3>
+    <div class="card mb-3">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('create_promotion') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-2">
+            <label class="form-label">Заголовок</label>
+            <input name="title" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Текст</label>
+            <textarea name="text" class="form-control" rows="3" required></textarea>
+          </div>
+          <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Добавить акцию</button>
+        </form>
+      </div>
+    </div>
+    <div class="list-group">
+    {% for p in promos %}
+      <div class="list-group-item d-flex justify-content-between align-items-start">
+        <div>
+          <div class="fw-bold">{{ p.title }}</div>
+          <div class="text-muted small">{{ p.text }}</div>
+          <div class="text-muted small">{{ p.created_at|dt }}</div>
+        </div>
+        <form method="post" action="{{ url_for('delete_promotion', promo_id=p.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+        </form>
+      </div>
+    {% else %}
+      <div class="text-muted">Акций пока нет</div>
+    {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-6 mb-4">
+    <h3 class="mb-3"><i class="bi bi-ticket-perforated"></i> Промокоды</h3>
+    <div class="card mb-3">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('create_promocode') }}" class="row g-2"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="col-6">
+            <label class="form-label">Код</label>
+            <input name="code" class="form-control text-uppercase" required>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Тип</label>
+            <select name="discount_type" class="form-select">
+              <option value="percent">Процент (%)</option>
+              <option value="fixed">Фикс. (₽)</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Скидка</label>
+            <input name="discount" type="number" step="0.01" class="form-control" required>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Лимит (шт.)</label>
+            <input name="usage_limit" type="number" class="form-control" placeholder="без лимита">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Действует до</label>
+            <input name="valid_until" type="date" class="form-control">
+          </div>
+          <div class="col-12">
+            <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Создать промокод</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="table-responsive">
+    <table class="table table-sm table-striped align-middle">
+      <thead><tr><th>Код</th><th>Скидка</th><th>Исп.</th><th>До</th><th></th></tr></thead>
+      <tbody>
+      {% for c in codes %}
+        <tr>
+          <td><code>{{ c.code }}</code></td>
+          <td>{{ c.discount }}{% if c.discount_type == 'percent' %}%{% else %} ₽{% endif %}</td>
+          <td>{{ c.used_count }}{% if c.usage_limit %}/{{ c.usage_limit }}{% endif %}</td>
+          <td>{% if c.valid_until %}{{ c.valid_until|dt }}{% else %}—{% endif %}</td>
+          <td>
+            <form method="post" action="{{ url_for('delete_promocode', code_id=c.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-center text-muted">Промокодов нет</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

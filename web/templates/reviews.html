@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Отзывы{% endblock %}
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-star-fill"></i> Все отзывы</h3>
+<form method="get" class="row g-2 mb-3">
+  <div class="col-auto">
+    <select name="kind" class="form-select form-select-sm" onchange="this.form.submit()">
+      <option value="">Все типы</option>
+      <option value="passenger_to_driver" {% if kind == 'passenger_to_driver' %}selected{% endif %}>Пассажир → Водитель</option>
+      <option value="driver_to_passenger" {% if kind == 'driver_to_passenger' %}selected{% endif %}>Водитель → Пассажир</option>
+    </select>
+  </div>
+</form>
+<div class="table-responsive">
+<table class="table table-striped table-sm align-middle">
+  <thead><tr><th>#</th><th>Тип</th><th>От кого</th><th>Кому</th><th>Оценка</th><th>Дата</th><th></th></tr></thead>
+  <tbody>
+  {% for it in items %}
+    <tr>
+      <td>{{ it.id }}</td>
+      <td>{% if it.kind == 'driver_to_passenger' %}Водитель → Пассажир{% else %}Пассажир → Водитель{% endif %}</td>
+      <td>{{ it.author }}{% if it.author_vk %} (<a href="https://vk.com/id{{ it.author_vk }}" target="_blank">id{{ it.author_vk }}</a>){% endif %}</td>
+      <td>{{ it.target }}{% if it.target_vk %} (<a href="https://vk.com/id{{ it.target_vk }}" target="_blank">id{{ it.target_vk }}</a>){% endif %}</td>
+      <td>{% for i in range(it.stars) %}⭐{% endfor %}</td>
+      <td>{{ it.created }}</td>
+      <td>
+        <form method="post" action="{{ url_for('delete_review', review_id=it.id) }}" onsubmit="return confirm('Удалить отзыв?');"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  {% if not items %}
+    <tr><td colspan="7" class="text-muted">Отзывов пока нет.</td></tr>
+  {% endif %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Тексты бота{% endblock %}
+{% block content %}
+<div class="page-title"><div><span class="eyebrow">Сообщения</span><h1>Все тексты бота</h1><p>Показаны только тексты, которые реально используются текущей версией. Найдено: {{ total }}.</p></div></div>
+<form method="get" class="panel text-search"><input class="form-control" name="q" value="{{ q }}" placeholder="Поиск по тексту, ключу или месту отправки"><button class="btn btn-primary">Найти</button>{% if q %}<a class="btn btn-outline-secondary" href="{{ url_for('bot_texts_view') }}">Сбросить</a>{% endif %}</form>
+<div class="bot-text-list">
+{% for item in items %}
+<article class="panel bot-text-card">
+  <div class="bot-text-head"><div><strong>{{ item.title }}</strong><code>{{ item.kind }} · {{ item.key }}</code></div><span class="badge text-bg-light">{{ 'системный шаблон' if item.kind == 'setting' else 'сообщение' }}</span></div>
+  <form method="post" action="{{ url_for('update_bot_text',kind=item.kind,key=item.key) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="page" value="{{ page }}">
+    <textarea class="form-control bot-textarea" name="text" rows="4">{{ item.text }}</textarea>
+    <div class="bot-text-actions"><small>Для составных сообщений используйте <code>{default}</code>, чтобы сохранить исходный динамический текст.</small><button class="btn btn-primary btn-sm">Сохранить</button></div>
+  </form>
+  <form method="post" action="{{ url_for('reset_bot_text',kind=item.kind,key=item.key) }}" class="reset-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="page" value="{{ page }}"><button class="btn btn-link btn-sm">Вернуть исходный текст</button>
+  </form>
+</article>
+{% else %}<div class="panel empty-state">Ничего не найдено.</div>{% endfor %}
+</div>
+{% if pages > 1 %}<nav class="pager"><a class="btn btn-outline-primary {% if page<=1 %}disabled{% endif %}" href="{{ url_for('bot_texts_view',q=q,page=page-1) }}">Назад</a><span>{{ page }} / {{ pages }}</span><a class="btn btn-outline-primary {% if page>=pages %}disabled{% endif %}" href="{{ url_for('bot_texts_view',q=q,page=page+1) }}">Далее</a></nav>{% endif %}
+{% endblock %}
