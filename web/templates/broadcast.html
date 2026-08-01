@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Рассылка{% endblock %}
+{% block content %}
+<h2 class="mb-1">Рассылка</h2><p class="text-muted mb-4">Отправка текста и VK-медиа пакетами с повторными попытками</p>
+<div class="row g-4"><div class="col-lg-6"><div class="card"><div class="card-body">
+<form method="post" action="{% print(url_for('broadcast_view')) %}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="mb-3"><label class="form-label">Кому</label><select name="target" class="form-select"><option value="all">Всем пользователям</option><option value="passenger">Пассажирам</option><option value="driver">Водителям</option></select></div>
+<div class="mb-3"><label class="form-label">Текст</label><textarea name="text" rows="6" class="form-control" required></textarea></div>
+<div class="mb-3"><label class="form-label">Медиа VK</label><input name="attachment" class="form-control" placeholder="photo-1_2,video-1_3,doc-1_4"><div class="form-text">Фото, видео и документы — одной строкой через запятую.</div></div>
+<button class="btn btn-primary"><i class="bi bi-send"></i> Запустить</button>
+</form></div></div></div>
+<div class="col-lg-6">{% if job %}<div class="card"><div class="card-body"><h6>Прогресс</h6><div class="progress mb-3" style="height:24px"><div id="bcast-bar" class="progress-bar" style="width:0%">0%</div></div><p>Отправлено: <span id="bcast-sent">{% print(job.sent) %}</span> / <span id="bcast-total">{% print(job.total) %}</span></p><p>Ошибок: <span id="bcast-failed">{% print(job.failed) %}</span></p><p id="bcast-status" class="text-muted">В процессе…</p></div></div><script>trackBroadcast('{% print(job_id) %}');</script>{% endif %}</div></div>
+{% endblock %}

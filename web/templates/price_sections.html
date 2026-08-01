@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Прайс / Направления{% endblock %}
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-signpost-2"></i> Прайс / Популярные направления</h3>
+<p class="text-muted">
+  Кнопка «Прайс» в меню пассажира открывает это меню вместо старого показа цен по линиям.
+  Ниже — заголовок меню и три подраздела. Для каждого раздела можно изменить название кнопки,
+  текст, который увидит пассажир, и прикрепить фото.
+</p>
+
+<div class="row">
+  <div class="col-lg-6 mb-4">
+    <div class="card border-primary">
+      <div class="card-header bg-primary text-white">
+        <i class="bi bi-house-door"></i> Заголовок меню «Самые популярные направления»
+      </div>
+      <div class="card-body">
+        {% set row = root %}
+        <form method="post" action="{{ url_for('price_sections_view') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="section_key" value="{{ row.section_key if row else 'popular_destinations' }}">
+          <div class="mb-3">
+            <label class="form-label">Заголовок (не показывается как кнопка)</label>
+            <input name="title" class="form-control" value="{{ row.title if row else '' }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Текст, который видит пассажир при открытии «Прайс»</label>
+            <textarea name="content" class="form-control" rows="4">{{ row.content if row else '' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Фото (URL, справочно)</label>
+            <input name="image_url" class="form-control" value="{{ row.image_url if row else '' }}" placeholder="https://...">
+            <div class="form-text">
+              Фото для показа в самом боте загружается через раздел «Прайс / Направления» в
+              меню администратора ВКонтакте (файл переиспользуется как VK-вложение).
+              {% if row and row.file_id %}Сейчас прикреплено фото: <code>{{ row.file_id }}</code>{% endif %}
+            </div>
+          </div>
+          {% if row and row.file_id %}
+          <button class="btn btn-outline-danger btn-sm mb-2" type="submit"
+                  formaction="{{ url_for('clear_price_section_photo', section_key=row.section_key) }}">
+            <i class="bi bi-x-circle"></i> Удалить фото
+          </button>
+          {% endif %}
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="no_notify" value="1">
+            <label class="form-check-label">Не уведомлять водителей об изменении</label>
+            <div class="form-text">По умолчанию при изменении текста всем водителям придёт уведомление.</div>
+          </div>
+          <button class="btn btn-primary mt-2"><i class="bi bi-save"></i> Сохранить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% for row in children %}
+  <div class="col-lg-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-signpost"></i> Подраздел: {{ row.title if row else row.section_key }}
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('price_sections_view') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="section_key" value="{{ row.section_key }}">
+          <div class="mb-3">
+            <label class="form-label">Название кнопки</label>
+            <input name="title" class="form-control" value="{{ row.title or '' }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Текст при нажатии</label>
+            <textarea name="content" class="form-control" rows="6">{{ row.content or '' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Фото (URL, справочно)</label>
+            <input name="image_url" class="form-control" value="{{ row.image_url or '' }}" placeholder="https://...">
+            <div class="form-text">
+              {% if row.file_id %}Сейчас прикреплено фото: <code>{{ row.file_id }}</code>{% else %}Фото не прикреплено.{% endif %}
+              Загрузка фото для бота — через меню администратора ВКонтакте.
+            </div>
+          </div>
+          {% if row.file_id %}
+          <button class="btn btn-outline-danger btn-sm mb-2" type="submit"
+                  formaction="{{ url_for('clear_price_section_photo', section_key=row.section_key) }}">
+            <i class="bi bi-x-circle"></i> Удалить фото
+          </button>
+          {% endif %}
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="no_notify" value="1">
+            <label class="form-check-label">Не уведомлять водителей об изменении</label>
+            <div class="form-text">По умолчанию при изменении текста всем водителям придёт уведомление.</div>
+          </div>
+          <button class="btn btn-primary mt-2"><i class="bi bi-save"></i> Сохранить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
