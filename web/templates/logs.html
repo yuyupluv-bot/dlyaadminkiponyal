@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Логи администратора{% endblock %}
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-journal-text"></i> Логи администратора</h3>
+<div class="table-responsive">
+<table class="table table-sm table-striped align-middle">
+  <thead><tr><th>Дата</th><th>Админ</th><th>Действие</th><th>Детали</th></tr></thead>
+  <tbody>
+  {% for l in logs %}
+    <tr>
+      <td class="text-nowrap">{{ l.created_at|dt }}</td>
+      <td>{% if l.admin %}{{ l.admin.login }}{% else %}—{% endif %}</td>
+      <td><span class="badge bg-info text-dark">{{ l.action }}</span></td>
+      <td class="text-muted small">{{ l.details }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="text-center text-muted">Записей нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

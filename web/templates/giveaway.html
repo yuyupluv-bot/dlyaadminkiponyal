@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Розыгрыш{% endblock %}
+{% block content %}
+<div class="page-title giveaway-heading">
+  <div>
+    <span class="eyebrow">Честный случайный выбор</span>
+    <h1>Розыгрыш</h1>
+    <p>Задайте условия — панель найдёт подходящих пассажиров и случайно выберет победителей.</p>
+  </div>
+  {% if candidates %}<div class="eligible-badge"><i class="bi bi-people-fill"></i><strong>{{ candidates|length }}</strong><span>участников подходят</span></div>{% endif %}
+</div>
+
+<form method="post" class="giveaway-layout">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <section class="panel giveaway-main">
+    <div class="section-title">
+      <h2><i class="bi bi-card-checklist"></i> Условия участия</h2>
+      <p>Все отмеченные условия применяются одновременно. Диспетчерские заявки не учитываются.</p>
+    </div>
+    <div class="condition-grid">
+      <label class="condition-card">
+        <input type="checkbox" name="condition_order" value="1" {% if form.condition_order %}checked{% endif %}>
+        <span class="condition-icon blue"><i class="bi bi-taxi-front"></i></span>
+        <span><strong>Сделал заявку</strong><small>Хотя бы одна обычная заявка</small></span>
+      </label>
+      <label class="condition-card">
+        <input type="checkbox" name="condition_completed" value="1" {% if form.condition_completed %}checked{% endif %}>
+        <span class="condition-icon green"><i class="bi bi-check2-circle"></i></span>
+        <span><strong>Есть успешная заявка</strong><small>Хотя бы одна завершённая поездка</small></span>
+      </label>
+      <label class="condition-card with-input">
+        <input type="checkbox" name="condition_min_completed" value="1" {% if form.condition_min_completed %}checked{% endif %}>
+        <span class="condition-icon violet"><i class="bi bi-123"></i></span>
+        <span><strong>Несколько успешных</strong><small>Минимум завершённых поездок</small></span>
+        <input class="form-control mini-input" type="number" name="min_completed" min="1" max="1000" value="{{ form.min_completed }}" aria-label="Минимум успешных заявок">
+      </label>
+      <label class="condition-card">
+        <input type="checkbox" name="condition_no_cancelled" value="1" {% if form.condition_no_cancelled %}checked{% endif %}>
+        <span class="condition-icon amber"><i class="bi bi-shield-check"></i></span>
+        <span><strong>Без отмен</strong><small>Нет отменённых заявок за период</small></span>
+      </label>
+      <label class="condition-card">
+        <input type="checkbox" name="condition_phone" value="1" {% if form.condition_phone %}checked{% endif %}>
+        <span class="condition-icon blue"><i class="bi bi-telephone-check"></i></span>
+        <span><strong>Указан телефон</strong><small>В профиле есть номер для связи</small></span>
+      </label>
+      <label class="condition-card">
+        <input type="checkbox" name="condition_verified" value="1" {% if form.condition_verified %}checked{% endif %}>
+        <span class="condition-icon green"><i class="bi bi-patch-check"></i></span>
+        <span><strong>Проверенный аккаунт</strong><small>Проверка VK успешно пройдена</small></span>
+      </label>
+      <label class="condition-card with-input">
+        <input type="checkbox" name="condition_rating" value="1" {% if form.condition_rating %}checked{% endif %}>
+        <span class="condition-icon amber"><i class="bi bi-star-fill"></i></span>
+        <span><strong>Рейтинг пассажира</strong><small>Не ниже выбранного значения</small></span>
+        <input class="form-control mini-input" type="number" name="min_rating" min="1" max="5" step="0.1" value="{{ form.min_rating }}" aria-label="Минимальный рейтинг">
+      </label>
+    </div>
+
+    <div class="section-title giveaway-subtitle">
+      <h2><i class="bi bi-calendar-range"></i> Период заявок</h2>
+      <p>Оставьте даты пустыми, чтобы учитывать всю историю.</p>
+    </div>
+    <div class="giveaway-fields three">
+      <label><span>С даты</span><input class="form-control" type="date" name="date_from" value="{{ form.date_from }}"></label>
+      <label><span>По дату включительно</span><input class="form-control" type="date" name="date_to" value="{{ form.date_to }}"></label>
+      <label><span>Количество победителей</span><input class="form-control" type="number" name="winners_count" min="1" max="50" value="{{ form.winners_count }}" required></label>
+    </div>
+
+    <div class="section-title giveaway-subtitle">
+      <h2><i class="bi bi-megaphone"></i> Оформление</h2>
+    </div>
+    <div class="giveaway-fields two">
+      <label><span>Текст розыгрыша</span><textarea class="form-control" name="contest_text" rows="6" placeholder="Например: Разыгрываем бесплатную поездку среди наших пассажиров!">{{ form.contest_text }}</textarea></label>
+      <label><span>Призы — каждый с новой строки</span><textarea class="form-control" name="prizes" rows="6" placeholder="1 место — 1000 ₽&#10;2 место — 500 ₽&#10;3 место — бесплатная поездка">{{ form.prizes }}</textarea><small>Если указан один приз, он назначается всем победителям.</small></label>
+    </div>
+    <div class="giveaway-actions">
+      <button class="btn btn-outline-primary" name="action" value="preview"><i class="bi bi-funnel"></i> Проверить участников</button>
+      <button class="btn btn-primary draw-button" name="action" value="draw"><i class="bi bi-stars"></i> Провести розыгрыш</button>
+    </div>
+  </section>
+</form>
+
+{% if winners %}
+<section class="giveaway-result">
+  <div class="confetti confetti-a"></div><div class="confetti confetti-b"></div>
+  <div class="result-kicker"><i class="bi bi-trophy-fill"></i> Розыгрыш проведён</div>
+  <h2>Поздравляем победителей!</h2>
+  <p>{{ form.contest_text }}</p>
+  <div class="winner-grid">
+    {% for winner in winners %}
+    <article class="winner-card place-{{ winner.place }}">
+      <div class="place-medal">{{ winner.place }}</div>
+      <div class="winner-avatar"><i class="bi bi-person-fill"></i></div>
+      <div><span>{{ winner.place }} место</span><h3>{{ winner.name }}</h3><a href="{{ winner.vk_url }}" target="_blank" rel="noopener">vk.com/id{{ winner.vk_id }}</a></div>
+      <strong class="winner-prize"><i class="bi bi-gift-fill"></i> {{ winner.prize }}</strong>
+      <small>{{ winner.completed }} успешных из {{ winner.orders }} заявок</small>
+    </article>
+    {% endfor %}
+  </div>
+  <div class="result-copy">
+    <label for="result-text">Готовый текст для публикации</label>
+    <textarea id="result-text" class="form-control" rows="{{ 8 + winners|length }}" readonly>{{ result_text }}</textarea>
+    <button type="button" class="btn btn-light" id="copy-result"><i class="bi bi-copy"></i> Скопировать результат</button>
+  </div>
+</section>
+{% endif %}
+
+{% if candidates %}
+<section class="panel candidate-panel">
+  <div class="section-title"><h2>Подходящие участники <span class="status success">{{ candidates|length }}</span></h2><p>Список сформирован до случайного выбора. Один человек участвует только один раз.</p></div>
+  <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Участник</th><th>Телефон</th><th>Заявок</th><th>Успешных</th><th>Отмен</th><th>Рейтинг</th><th>Последняя заявка</th></tr></thead><tbody>
+  {% for person in candidates[:200] %}<tr><td><strong>{{ person.name }}</strong><small><a href="{{ person.vk_url }}" target="_blank" rel="noopener">id{{ person.vk_id }}</a></small></td><td>{{ person.phone }}</td><td>{{ person.orders }}</td><td><span class="status success">{{ person.completed }}</span></td><td>{{ person.cancelled }}</td><td>{{ '%.1f'|format(person.rating) if person.rating else '—' }}</td><td>{{ person.last_order_at|dt if person.last_order_at else '—' }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if candidates|length > 200 %}<p class="candidate-note">Показаны первые 200 участников. В случайном выборе участвуют все {{ candidates|length }}.</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+(() => {
+  const button = document.getElementById('copy-result');
+  const text = document.getElementById('result-text');
+  if (!button || !text) return;
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(text.value);
+      button.innerHTML = '<i class="bi bi-check2"></i> Скопировано';
+      setTimeout(() => button.innerHTML = '<i class="bi bi-copy"></i> Скопировать результат', 1800);
+    } catch (_) { text.select(); document.execCommand('copy'); }
+  });
+})();
+</script>
+{% endblock %}

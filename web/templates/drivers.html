@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% block title %}Водители{% endblock %}{% block content %}
+<div class="page-title"><div><span class="eyebrow">Выполненные заявки</span><h1>Водители</h1><p>Позавчера, вчера и сегодня · Екатеринбург (UTC+5)</p></div></div>
+<section class="stats-metric-grid">
+{% for day in stats.days %}<article class="metric blue"><i class="bi bi-calendar-day"></i><div><span>{{ day.label }}</span><strong>{{ day.count }}</strong><small>{{ day.date }}</small></div></article>{% endfor %}
+<article class="metric green"><i class="bi bi-check-circle"></i><div><span>Всего за 3 дня</span><strong>{{ stats.total }}</strong><small>{{ stats.drivers }} водителей</small></div></article>
+</section>
+<div class="panel table-panel"><div class="table-responsive"><table class="table align-middle"><thead><tr><th>#</th><th>Водитель</th>{% for day in stats.days %}<th>{{ day.label }}<small>{{ day.date }}</small></th>{% endfor %}<th>Всего</th></tr></thead><tbody>
+{% for row in stats.rows %}<tr><td>{{ row.place }}</td><td><strong>{{ row.name }}</strong></td>{% for count in row.counts %}<td>{{ count }}</td>{% endfor %}<td><span class="status success">{{ row.total }}</span></td></tr>
+{% else %}<tr><td colspan="6" class="empty">За эти дни никто не выполнил заявок</td></tr>{% endfor %}
+{% if stats.rows %}<tr><td></td><td><strong>Итого</strong></td>{% for count in stats.totals %}<td><strong>{{ count }}</strong></td>{% endfor %}<td><strong>{{ stats.total }}</strong></td></tr>{% endif %}
+</tbody></table></div></div>{% endblock %}
